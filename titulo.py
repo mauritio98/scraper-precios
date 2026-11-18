@@ -1,6 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
 import csv
+import time
+
 
 url = "https://books.toscrape.com"
 respuesta = requests.get(url)
@@ -13,14 +15,24 @@ libros = soup.find_all("article", class_="product_pod")
 
 filas = []
 
-for libro in libros:
-    titulo = libro.h3.a["title"]
-    precio = libro.find("p",class_="price_color").text
-    print(titulo, "-", precio)
-    precio_num = float(precio.replace("£", ""))
-    filas.append([titulo, precio_num])
-    if precio_num < 20:
-        print("BARATO:", titulo, precio_num)
+for pagina in range(1,51):
+    url = f"https://books.toscrape.com/catalogue/page-{pagina}.html"
+    respuesta = requests.get(url)
+    respuesta.encoding = "utf-8"
+    soup = BeautifulSoup(respuesta.text, "html.parser")
+    libros = soup.find_all("article", class_= "product_pod")
+    time.sleep(1)
+
+    for libro in libros:
+        titulo = libro.h3.a["title"]
+        precio = libro.find("p",class_="price_color").text
+        print(titulo, "-", precio)
+        precio_num = float(precio.replace("£", ""))
+        filas.append([titulo, precio_num])
+        if precio_num < 20:
+            print("BARATO:", titulo, precio_num)
+
+
 
 with open("libros.csv", "w", newline="", encoding="utf-8-sig") as archivo:
     escritor = csv.writer(archivo)
